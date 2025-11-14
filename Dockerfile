@@ -1,22 +1,20 @@
-FROM apache/superset:4.1.3-lean
+FROM apache/superset:4.1.3
 
-# Install Postgres driver
+# System deps
 USER root
-RUN apt-get update && \
-    apt-get install -y libpq-dev && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y libpq-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install psycopg2
+# Python deps
 USER superset
-RUN pip install --no-cache-dir psycopg2-binary==2.9.9
+RUN pip install --no-cache-dir psycopg2-binary==2.9.9 pillow==10.3.0
 
-# Copy config
+# Copy config and entrypoint script
 COPY superset_config.py /app/pythonpath/superset_config.py
+COPY entrypoint.sh /app/docker/entrypoint.sh
 
-# Auto-init + start (no shell needed)
-CMD ["/bin/sh", "-c", \
-     "superset db upgrade && \
-      (superset fab create-admin --username zaga --firstname zaga --lastname dat --email opiobethle@gmail.com --password zagadat || echo 'Admin exists') && \
-      superset init && \
-      gunicorn --worker-class sync -w 4 --timeout 300 -b 0.0.0.0:8088 superset:app"]
+# Set config path
+ENV SUPERSET_CONFIG_PATH=/app/pythonpath/superset_config.py
+
+# Use official entrypoint + our script
+ENTRYPOINT ["/app/docker/entrypoint.sh"]
+CMD ["gunicorn", "--worker-class", "sync", "-w", "4", "--timeout", "300", "-b", "0.0.0.0:8088", "--preload", "superset.app:create_app()"]
