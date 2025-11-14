@@ -1,0 +1,15 @@
+import os
+
+SECRET_KEY = os.environ.get('SUPERSET_SECRET_KEY', 'fallback-secret')
+SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
+
+ROW_LIMIT = 25000
+WEBSERVER_TIMEOUT = 300
+SUPERSET_LOAD_EXAMPLES = False
+
+CACHE_CONFIG = {
+    'CACHE_TYPE': 'FileSystemCache',
+    'CACHE_DIR': '/tmp'
+}
+
+SESSION_COOKIE_SECURE = False
